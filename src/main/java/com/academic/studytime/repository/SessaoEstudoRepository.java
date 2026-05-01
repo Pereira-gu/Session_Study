@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SessaoEstudoRepository extends JpaRepository<SessaoEstudo, Long> {
+
     @Query("SELECT COALESCE(SUM(s.tempoSegundos), 0) FROM SessaoEstudo s")
     Long obterTempoTotalSegundos();
 }
