@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Studytime - MVP com Timer</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #0f172a; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; }
+    .container { width: 400px; background: #1e293b; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; border: 1px solid #334155; }
+    h2 { margin-bottom: 20px; color: #38bdf8; }
+
+    .timer-display { font-size: 48px; font-weight: bold; margin: 20px 0; font-family: monospace; color: #deff9a; background: #0f172a; padding: 15px; border-radius: 10px; border: 2px solid #334155; }
+
+    select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; margin-bottom: 20px; cursor: pointer; }
+
+    .controls { display: flex; gap: 10px; justify-content: center; }
+    button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+
+    .btn-start { background-color: #22c55e; color: white; }
+    .btn-start:hover { background-color: #16a34a; }
+    .btn-stop { background-color: #ef4444; color: white; }
+    .btn-stop:hover { background-color: #dc2626; }
+
+    .total-box { margin-top: 30px; border-top: 1px solid #334155; pt: 20px; }
+    #tempo-total { font-size: 20px; color: #38bdf8; font-weight: bold; margin-top: 10px; }
+
+    .status { font-size: 14px; opacity: 0.7; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>⏱️ Studytime</h2>
+
+  <label for="categoria">O que vamos fazer agora?</label>
+  <select id="categoria">
+    <option value="Estudo">Estudo</option>
+    <option value="Trabalho">Trabalho</option>
+    <option value="Lazer">Lazer</option>
+  </select>
+
+  <div class="timer-display" id="display">00:00:00</div>
+  <div class="status" id="status">Aguardando início...</div>
+
+  <p></p>
+
+  <div class="controls">
+    <button class="btn-start" id="startBtn" onclick="iniciarTimer()">Iniciar</button>
+    <button class="btn-stop" id="stopBtn" onclick="finalizarTimer()" disabled style="opacity: 0.5;">Finalizar</button>
+  </div>
+
+  <div class="total-box">
+    <p>Tempo Acumulado Total</p>
+    <div id="tempo-total">0h 0m</div>
+  </div>
+</div>
+
+<script>
+  let inicio;
+  let intervalo;
+
+  function formatarTempo(segundosTotais) {
+      let horas = Math.floor(segundosTotais / 3600);
+      let minutos = Math.floor((segundosTotais % 3600) / 60);
+      let segundos = segundosTotais % 60;
+
+      return [horas, minutos, segundos]
+          .map(v => v < 10 ? "0" + v : v)
+          .join(":");
+  }
+
+  function iniciarTimer() {
+      inicio = new Date();
+      document.getElementById('status').innerText = "🔴 Sessão em andamento...";
+      document.getElementById('startBtn').disabled = true;
+      document.getElementById('startBtn').style.opacity = "0.5";
+      document.getElementById('stopBtn').disabled = false;
+      document.getElementById('stopBtn').style.opacity = "1";
+
+      // Inicia o contador visual
+      intervalo = setInterval(() => {
+          let agora = new Date();
+          let decorrido = Math.floor((agora - inicio) / 1000);
+          document.getElementById('display').innerText = formatarTempo(decorrido);
+      }, 1000);
+  }
+
+  async function finalizarTimer() {
+      if (!inicio) return;
+
+      clearInterval(intervalo);
+      let fim = new Date();
+
+      let payload = {
+          categoria: document.getElementById('categoria').value,
+          horarioInicio: inicio.toISOString().slice(0, 19),
+          horarioFim: fim.toISOString().slice(0, 19)
+      };
+
+      try {
+          let response = await fetch('http://localhost:8080/api/v1/sessoes', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+          });
+
+          if (response.ok) {
+              alert("Sessão salva e validada pelo servidor!");
+              resetarInterface();
+              carregarTempoTotal();
+          } else {
+              alert("Erro ao salvar. Verifique se o backend está rodando.");
+          }
+      } catch (error) {
+          console.error("Erro:", error);
+      }
+  }
+
+  function resetarInterface() {
+      inicio = null;
+      document.getElementById('display').innerText = "00:00:00";
+      document.getElementById('status').innerText = "Aguardando início...";
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('startBtn').style.opacity = "1";
+      document.getElementById('stopBtn').disabled = true;
+      document.getElementById('stopBtn').style.opacity = "0.5";
+  }
+
+  async function carregarTempoTotal() {
+      try {
+          let response = await fetch('http://localhost:8080/api/v1/sessoes/tempo-total');
+          let segundos = await response.json();
+
+          let horas = Math.floor(segundos / 3600);
+          let minutos = Math.floor((segundos % 3600) / 60);
+          document.getElementById('tempo-total').innerText = `${horas}h ${minutos}m`;
+      } catch (e) {
+          document.getElementById('tempo-total').innerText = "Erro ao carregar";
+      }
+  }
+
+  carregarTempoTotal();
+</script>
+
+</body>
+</html>
