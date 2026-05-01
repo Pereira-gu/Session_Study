@@ -1,4 +1,4 @@
-package com.academic.studytime.DTO;
+package com.academic.studytime.dto;
 
 import lombok.Getter;
 import lombok.Setter;

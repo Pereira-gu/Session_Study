@@ -1,4 +1,4 @@
-package com.academic.studytime.Model;
+package com.academic.studytime.model; // Ajuste para minúsculo para seguir a convenção Java
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -25,13 +26,11 @@ public class SessaoEstudo {
     private Long tempoSegundos;
 
     @Column(nullable = false)
-    private LocalDateTime dataCriacao;
+    private LocalDate dataCriacao;
 
     @Column(nullable = false)
-    private LocalDateTime horaInicio;
+    private LocalDateTime horarioInicio;
 
     @Column(nullable = false)
-    private LocalDateTime horaFim;
-
-
+    private LocalDateTime horarioFim;
 }
