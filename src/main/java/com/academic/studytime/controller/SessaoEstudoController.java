@@ -9,8 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
-@RequestMapping("/sessoes")
+@RequestMapping("/api/v1/sessoes")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class SessaoEstudoController {
@@ -18,7 +20,7 @@ public class SessaoEstudoController {
     private final SessaoEstudoService service;
 
     @PostMapping
-    public ResponseEntity<SessaoEstudo> criarSessao(@RequestBody SessaoEstudoRequest request) {
+    public ResponseEntity<SEResponse> criarSessao(@RequestBody SessaoEstudoRequest request) {
         SessaoEstudo novaSessao = service.salvarSessao(request);
 
         SEResponse response = new SEResponse(
@@ -29,12 +31,19 @@ public class SessaoEstudoController {
                 novaSessao.getHorarioInicio(),
                 novaSessao.getHorarioFim()
         );
-        return ResponseEntity.status(HttpStatus.CREATED).body(novaSessao);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/tempo-total")
     public ResponseEntity<Long> obterTempoTotal() {
         Long totalSegundos = service.obterTempoTotalSegundos();
         return ResponseEntity.ok(totalSegundos);
+    }
+
+    @GetMapping("/tempo-por-categoria")
+    public ResponseEntity<Map<String, Long>> obterTempoPorCategoria() {
+        Map<String, Long> tempoPorCategoria = service.obterTempoPorCategoria();
+        return ResponseEntity.ok(tempoPorCategoria);
     }
 }

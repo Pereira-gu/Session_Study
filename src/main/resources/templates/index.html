@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Studytime - MVP com Timer</title>
+  <title>Studytime - MVP Completo</title>
   <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #0f172a; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; }
-    .container { width: 400px; background: #1e293b; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; border: 1px solid #334155; }
+    .container { width: 420px; background: #1e293b; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; border: 1px solid #334155; }
     h2 { margin-bottom: 20px; color: #38bdf8; }
 
-    .timer-display { font-size: 48px; font-weight: bold; margin: 20px 0; font-family: monospace; color: #deff9a; background: #0f172a; padding: 15px; border-radius: 10px; border: 2px solid #334155; }
+    .timer-display { font-size: 42px; font-weight: bold; margin: 20px 0; font-family: monospace; color: #deff9a; background: #0f172a; padding: 15px; border-radius: 10px; border: 2px solid #334155; }
 
     select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; margin-bottom: 20px; cursor: pointer; }
 
@@ -21,10 +21,13 @@
     .btn-stop { background-color: #ef4444; color: white; }
     .btn-stop:hover { background-color: #dc2626; }
 
-    .total-box { margin-top: 30px; border-top: 1px solid #334155; pt: 20px; }
-    #tempo-total { font-size: 20px; color: #38bdf8; font-weight: bold; margin-top: 10px; }
+    .total-box { margin-top: 25px; border-top: 1px solid #334155; padding-top: 20px; }
+    #tempo-total { font-size: 24px; color: #38bdf8; font-weight: bold; margin-top: 5px; }
 
-    .status { font-size: 14px; opacity: 0.7; margin-top: 10px; }
+    .category-summary { margin-top: 15px; text-align: left; background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid #334155; font-size: 14px; color: #cbd5e1; }
+    .category-summary p { margin: 5px 0; display: flex; justify-content: space-between; }
+
+    .status { font-size: 14px; opacity: 0.7; margin-bottom: 15px; }
   </style>
 </head>
 <body>
@@ -42,16 +45,21 @@
   <div class="timer-display" id="display">00:00:00</div>
   <div class="status" id="status">Aguardando início...</div>
 
-  <p></p>
-
   <div class="controls">
     <button class="btn-start" id="startBtn" onclick="iniciarTimer()">Iniciar</button>
     <button class="btn-stop" id="stopBtn" onclick="finalizarTimer()" disabled style="opacity: 0.5;">Finalizar</button>
   </div>
 
   <div class="total-box">
-    <p>Tempo Acumulado Total</p>
-    <div id="tempo-total">0h 0m</div>
+    <div>Tempo Acumulado Total</div>
+    <div id="tempo-total">Carregando...</div>
+  </div>
+
+  <div class="category-summary">
+    <strong>Por Categoria:</strong>
+    <p><span>Estudo:</span> <span id="cat-estudo">0h 0m</span></p>
+    <p><span>Trabalho:</span> <span id="cat-trabalho">0h 0m</span></p>
+    <p><span>Lazer:</span> <span id="cat-lazer">0h 0m</span></p>
   </div>
 </div>
 
@@ -69,6 +77,12 @@
           .join(":");
   }
 
+  function formatarHorasMinutos(segundosTotais) {
+      let horas = Math.floor(segundosTotais / 3600);
+      let minutos = Math.floor((segundosTotais % 3600) / 60);
+      return `${horas}h ${minutos}m`;
+  }
+
   function iniciarTimer() {
       inicio = new Date();
       document.getElementById('status').innerText = "🔴 Sessão em andamento...";
@@ -77,7 +91,6 @@
       document.getElementById('stopBtn').disabled = false;
       document.getElementById('stopBtn').style.opacity = "1";
 
-      // Inicia o contador visual
       intervalo = setInterval(() => {
           let agora = new Date();
           let decorrido = Math.floor((agora - inicio) / 1000);
@@ -105,11 +118,11 @@
           });
 
           if (response.ok) {
-              alert("Sessão salva e validada pelo servidor!");
+              alert("Sessão salva com sucesso!");
               resetarInterface();
-              carregarTempoTotal();
+              carregarDados();
           } else {
-              alert("Erro ao salvar. Verifique se o backend está rodando.");
+              alert("Erro ao salvar sessão. Verifique o console.");
           }
       } catch (error) {
           console.error("Erro:", error);
@@ -126,20 +139,27 @@
       document.getElementById('stopBtn').style.opacity = "0.5";
   }
 
-  async function carregarTempoTotal() {
+  async function carregarDados() {
       try {
-          let response = await fetch('http://localhost:8080/api/v1/sessoes/tempo-total');
-          let segundos = await response.json();
+          // Carrega o tempo total
+          let responseTotal = await fetch('http://localhost:8080/api/v1/sessoes/tempo-total');
+          let totalSegundos = await responseTotal.json();
+          document.getElementById('tempo-total').innerText = formatarHorasMinutos(totalSegundos);
 
-          let horas = Math.floor(segundos / 3600);
-          let minutos = Math.floor((segundos % 3600) / 60);
-          document.getElementById('tempo-total').innerText = `${horas}h ${minutos}m`;
+          // Carrega o tempo separado por categoria
+          let responseCat = await fetch('http://localhost:8080/api/v1/sessoes/tempo-por-categoria');
+          let dadosPorCategoria = await responseCat.json();
+
+          document.getElementById('cat-estudo').innerText = formatarHorasMinutos(dadosPorCategoria["Estudo"] || 0);
+          document.getElementById('cat-trabalho').innerText = formatarHorasMinutos(dadosPorCategoria["Trabalho"] || 0);
+          document.getElementById('cat-lazer').innerText = formatarHorasMinutos(dadosPorCategoria["Lazer"] || 0);
+
       } catch (e) {
-          document.getElementById('tempo-total').innerText = "Erro ao carregar";
+          document.getElementById('tempo-total').innerText = "Erro";
       }
   }
 
-  carregarTempoTotal();
+  carregarDados();
 </script>
 
 </body>
