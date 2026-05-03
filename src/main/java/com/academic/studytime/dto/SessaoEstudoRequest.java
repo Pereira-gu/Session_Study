@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 @Getter @Setter
 public class SessaoEstudoRequest {
+    private Long id;
     private String categoria;
     private LocalDateTime horarioInicio;
     private LocalDateTime horarioFim;

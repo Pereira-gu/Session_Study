@@ -22,15 +22,18 @@ public class SessaoEstudo {
     @Column(nullable = false)
     private String categoria;
 
-    @Column(nullable = false)
     private Long tempoSegundos;
 
-    @Column(nullable = false)
     private LocalDate dataCriacao;
 
     @Column(nullable = false)
     private LocalDateTime horarioInicio;
 
-    @Column(nullable = false)
     private LocalDateTime horarioFim;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatusSessao status;
+
+    public enum StatusSessao{ INICIADA, FINALIZADA}
 }
