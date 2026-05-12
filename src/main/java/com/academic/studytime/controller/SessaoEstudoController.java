@@ -4,6 +4,7 @@ import com.academic.studytime.dto.SEResponse;
 import com.academic.studytime.dto.SessaoEstudoRequest;
 import com.academic.studytime.model.SessaoEstudo;
 import com.academic.studytime.service.SessaoEstudoService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class SessaoEstudoController {
     private final SessaoEstudoService service;
 
     @PostMapping
-    public ResponseEntity<SEResponse> criarSessao(@RequestBody SessaoEstudoRequest request) {
+    public ResponseEntity<SEResponse> criarSessao(@Valid @RequestBody SessaoEstudoRequest request) {
         SessaoEstudo novaSessao = service.salvarSessao(request);
 
         SEResponse response = new SEResponse(
