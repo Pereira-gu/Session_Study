@@ -4,6 +4,7 @@ import com.academic.studytime.dto.SEResponse;
 import com.academic.studytime.dto.SessaoEstudoMapper;
 import com.academic.studytime.dto.SessaoEstudoRequest;
 import com.academic.studytime.model.SessaoEstudo;
+import com.academic.studytime.model.Usuario;
 import com.academic.studytime.repository.SessaoEstudoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -24,9 +25,10 @@ public class SessaoEstudoService {
     private final SessaoEstudoRepository repository;
     private final SessaoEstudoMapper mapper;
 
-    @CacheEvict(value = "tempoTotalCache", allEntries = true)
-    public SessaoEstudo salvarSessao(SessaoEstudoRequest request) {
+    @CacheEvict(value = "tempoTotalCache", key = "#usuario.id")
+    public SessaoEstudo salvarSessao(SessaoEstudoRequest request, Usuario usuario) {
         SessaoEstudo sessao = mapper.toEntity(request);
+        sessao.setUsuario(usuario);
 
         long segundosCalculados = Duration.between(
                 request.getHorarioInicio(),
@@ -47,13 +49,13 @@ public class SessaoEstudoService {
         return repository.save(sessao);
     }
 
-    @Cacheable(value = "tempoTotalCache")
-    public Long obterTempoTotalSegundos() {
-        return repository.obterTempoTotalSegundos();
+    @Cacheable(value = "tempoTotalCache", key = "#usuarioId")
+    public Long obterTempoTotalSegundos(Long usuarioId) {
+        return repository.obterTempoTotalSegundos(usuarioId);
     }
 
-    public Map<String, Long> obterTempoPorCategoria() {
-        List<Object[]> resultados = repository.obterTempoPorCategoria();
+    public Map<String, Long> obterTempoPorCategoria(Long usuarioId) {
+        List<Object[]> resultados = repository.obterTempoPorCategoria(usuarioId);
         Map<String, Long> tempoPorCategoria = new HashMap<>();
 
         for (Object[] resultado : resultados) {
@@ -65,8 +67,8 @@ public class SessaoEstudoService {
         return tempoPorCategoria;
     }
 
-    public Page<SEResponse> listarSessoes(Pageable pageable) {
-        Page<SessaoEstudo> pagina = repository.findAll(pageable);
+    public Page<SEResponse> listarSessoes(Long usuarioId, Pageable pageable) {
+        Page<SessaoEstudo> pagina = repository.findAllByUsuarioId(usuarioId, pageable);
         return pagina.map(mapper::toResponse);
     }
 }

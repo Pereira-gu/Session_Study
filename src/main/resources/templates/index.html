@@ -3,19 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Studytime - MVP Completo</title>
+  <title>Studytime - Login</title>
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #0f172a; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; }
-    .container { width: 420px; background: #1e293b; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; border: 1px solid #334155; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #0f172a; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column; }
+    .container { width: 420px; background: #1e293b; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; border: 1px solid #334155; margin-bottom: 20px;}
     h2 { margin-bottom: 20px; color: #38bdf8; }
+
+    input[type="text"], input[type="password"], input[type="number"], select { width: 100%; box-sizing: border-box; padding: 10px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; margin-bottom: 15px; }
+    button { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-bottom: 10px;}
+
+    .btn-primary { background-color: #38bdf8; color: #0f172a; }
+    .btn-primary:hover { background-color: #0284c7; color: white;}
+    .btn-secondary { background-color: #475569; color: white; }
+    .btn-secondary:hover { background-color: #334155; }
 
     .timer-display { font-size: 42px; font-weight: bold; margin: 20px 0; font-family: monospace; color: #deff9a; background: #0f172a; padding: 15px; border-radius: 10px; border: 2px solid #334155; }
 
-    select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; margin-bottom: 20px; cursor: pointer; }
-
-    .controls { display: flex; gap: 10px; justify-content: center; }
-    button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-
+    .controls { display: flex; gap: 10px; justify-content: center; margin-bottom: 10px; }
+    .controls button { margin-bottom: 0; }
     .btn-start { background-color: #22c55e; color: white; }
     .btn-start:hover { background-color: #16a34a; }
     .btn-stop { background-color: #ef4444; color: white; }
@@ -28,26 +33,61 @@
     .category-summary p { margin: 5px 0; display: flex; justify-content: space-between; }
 
     .status { font-size: 14px; opacity: 0.7; margin-bottom: 15px; }
+    .mode-switch { margin-bottom: 15px; display: flex; gap: 10px; justify-content: center;}
+    .mode-switch label { cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 14px; }
+
+    .hidden { display: none !important; }
+
+    #user-info { margin-bottom: 15px; font-size: 14px; color: #cbd5e1; display: flex; justify-content: space-between; align-items: center;}
+    .logout-link { color: #ef4444; cursor: pointer; text-decoration: underline; }
   </style>
 </head>
 <body>
 
-<div class="container">
+<!-- TELA DE LOGIN / REGISTRO -->
+<div class="container" id="auth-container">
+  <h2>🔒 Autenticação</h2>
+  <div id="auth-message" style="color: #ef4444; margin-bottom: 10px; font-size: 14px;"></div>
+
+  <input type="text" id="email" placeholder="E-mail">
+  <input type="password" id="senha" placeholder="Senha">
+
+  <button class="btn-primary" onclick="fazerLogin()">Entrar</button>
+  <button class="btn-secondary" onclick="fazerRegistro()">Criar Conta</button>
+</div>
+
+<!-- TELA PRINCIPAL (APP) -->
+<div class="container hidden" id="app-container">
+  <div id="user-info">
+      <span id="logged-email">Usuario</span>
+      <span class="logout-link" onclick="fazerLogout()">Sair</span>
+  </div>
+
   <h2>⏱️ Studytime</h2>
 
-  <label for="categoria">O que vamos fazer agora?</label>
+  <label for="categoria" style="display:block; text-align:left; margin-bottom:5px; font-size:14px;">O que vamos fazer agora?</label>
   <select id="categoria">
     <option value="Estudo">Estudo</option>
     <option value="Trabalho">Trabalho</option>
     <option value="Lazer">Lazer</option>
   </select>
 
+  <div class="mode-switch">
+      <label><input type="radio" name="modo" value="cronometro" checked onchange="mudarModo()"> Cronômetro</label>
+      <label><input type="radio" name="modo" value="timer" onchange="mudarModo()"> Timer</label>
+  </div>
+
+  <div id="timer-input-container" style="display: none; align-items: center; gap: 10px; margin-bottom: 20px; text-align: left;">
+      <label for="tempoDesejado" style="font-size: 14px;">Minutos:</label>
+      <input type="number" id="tempoDesejado" min="1" max="1440" value="30" style="margin-bottom: 0;">
+  </div>
+
   <div class="timer-display" id="display">00:00:00</div>
   <div class="status" id="status">Aguardando início...</div>
 
   <div class="controls">
-    <button class="btn-start" id="startBtn" onclick="iniciarTimer()">Iniciar</button>
-    <button class="btn-stop" id="stopBtn" onclick="finalizarTimer()" disabled style="opacity: 0.5;">Finalizar</button>
+    <button class="btn-start" id="startBtn" onclick="iniciarSessao()">Iniciar</button>
+    <button class="btn-stop" id="stopBtn" onclick="finalizarSessao(false)" disabled style="opacity: 0.5;">Finalizar</button>
   </div>
 
   <div class="total-box">
@@ -64,17 +104,132 @@
 </div>
 
 <script>
+  // --- LÓGICA DE AUTENTICAÇÃO ---
+  let jwtToken = localStorage.getItem('jwt_token');
+
+  function verificarAuth() {
+      if (jwtToken) {
+          document.getElementById('auth-container').classList.add('hidden');
+          document.getElementById('app-container').classList.remove('hidden');
+          // No mundo real leríamos o JWT decodificado, aqui vamos pegar de forma simples
+          let base64Url = jwtToken.split('.')[1];
+          let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          let jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+          }).join(''));
+          let payload = JSON.parse(jsonPayload);
+          document.getElementById('logged-email').innerText = payload.sub;
+          carregarDados();
+      } else {
+          document.getElementById('auth-container').classList.remove('hidden');
+          document.getElementById('app-container').classList.add('hidden');
+      }
+  }
+
+  async function fazerLogin() {
+      let email = document.getElementById('email').value;
+      let senha = document.getElementById('senha').value;
+      let msgBox = document.getElementById('auth-message');
+
+      try {
+          let response = await fetch('http://localhost:8080/api/v1/auth/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, senha })
+          });
+
+          if (response.ok) {
+              let data = await response.json();
+              jwtToken = data.token;
+              localStorage.setItem('jwt_token', jwtToken);
+              msgBox.innerText = "";
+              verificarAuth();
+          } else {
+              msgBox.innerText = "Credenciais inválidas!";
+          }
+      } catch (e) {
+          msgBox.innerText = "Erro de conexão com o servidor.";
+      }
+  }
+
+  async function fazerRegistro() {
+      let email = document.getElementById('email').value;
+      let senha = document.getElementById('senha').value;
+      let msgBox = document.getElementById('auth-message');
+
+      if(!email || !senha) {
+          msgBox.innerText = "Preencha e-mail e senha.";
+          return;
+      }
+
+      try {
+          let response = await fetch('http://localhost:8080/api/v1/auth/registro', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, senha })
+          });
+
+          if (response.ok) {
+              msgBox.style.color = "#22c55e";
+              msgBox.innerText = "Conta criada! Agora faça login.";
+          } else {
+              let erro = await response.text();
+              msgBox.style.color = "#ef4444";
+              msgBox.innerText = erro;
+          }
+      } catch (e) {
+          msgBox.innerText = "Erro de conexão com o servidor.";
+      }
+  }
+
+  function fazerLogout() {
+      jwtToken = null;
+      localStorage.removeItem('jwt_token');
+      document.getElementById('email').value = '';
+      document.getElementById('senha').value = '';
+      verificarAuth();
+  }
+
+
+  // --- LÓGICA DO APP (TIMER/CRONOMETRO) ---
   let inicio;
   let intervalo;
+  let modoAtual = 'cronometro';
+  let tempoDesejadoSegundos = 0;
+  let alarmeAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+
+  function getHeaders() {
+      return {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwtToken}`
+      };
+  }
+
+  function mudarModo() {
+      modoAtual = document.querySelector('input[name="modo"]:checked').value;
+      if (modoAtual === 'timer') {
+          document.getElementById('timer-input-container').style.display = 'flex';
+          let minutos = parseInt(document.getElementById('tempoDesejado').value) || 0;
+          document.getElementById('display').innerText = formatarTempo(minutos * 60);
+      } else {
+          document.getElementById('timer-input-container').style.display = 'none';
+          document.getElementById('display').innerText = "00:00:00";
+      }
+  }
+
+  document.getElementById('tempoDesejado').addEventListener('input', function() {
+      if (!inicio && modoAtual === 'timer') {
+          let minutos = parseInt(this.value) || 0;
+          document.getElementById('display').innerText = formatarTempo(minutos * 60);
+      }
+  });
 
   function formatarTempo(segundosTotais) {
+      if (segundosTotais < 0) segundosTotais = 0;
       let horas = Math.floor(segundosTotais / 3600);
       let minutos = Math.floor((segundosTotais % 3600) / 60);
       let segundos = segundosTotais % 60;
-
-      return [horas, minutos, segundos]
-          .map(v => v < 10 ? "0" + v : v)
-          .join(":");
+      return [horas, minutos, segundos].map(v => v < 10 ? "0" + v : v).join(":");
   }
 
   function formatarHorasMinutos(segundosTotais) {
@@ -83,27 +238,54 @@
       return `${horas}h ${minutos}m`;
   }
 
-  function iniciarTimer() {
+  function iniciarSessao() {
       inicio = new Date();
       document.getElementById('status').innerText = "🔴 Sessão em andamento...";
       document.getElementById('startBtn').disabled = true;
       document.getElementById('startBtn').style.opacity = "0.5";
       document.getElementById('stopBtn').disabled = false;
       document.getElementById('stopBtn').style.opacity = "1";
+      document.querySelectorAll('input[name="modo"]').forEach(el => el.disabled = true);
+      document.getElementById('tempoDesejado').disabled = true;
+      document.getElementById('categoria').disabled = true;
+
+      if (modoAtual === 'timer') {
+          let minutos = parseInt(document.getElementById('tempoDesejado').value) || 30;
+          tempoDesejadoSegundos = minutos * 60;
+      }
 
       intervalo = setInterval(() => {
           let agora = new Date();
           let decorrido = Math.floor((agora - inicio) / 1000);
-          document.getElementById('display').innerText = formatarTempo(decorrido);
+
+          if (modoAtual === 'cronometro') {
+              document.getElementById('display').innerText = formatarTempo(decorrido);
+          } else if (modoAtual === 'timer') {
+              let restante = tempoDesejadoSegundos - decorrido;
+              if (restante <= 0) {
+                  document.getElementById('display').innerText = "00:00:00";
+                  tocarAlarmeEFinalizar();
+              } else {
+                  document.getElementById('display').innerText = formatarTempo(restante);
+              }
+          }
       }, 1000);
   }
 
-  async function finalizarTimer() {
-      if (!inicio) return;
+  function tocarAlarmeEFinalizar() {
+      clearInterval(intervalo);
+      alarmeAudio.play().catch(e => console.log("Erro ao tocar áudio:", e));
+      document.getElementById('status').innerText = "⏰ O tempo acabou!";
+      setTimeout(() => {
+          alert("O tempo acabou! Bom trabalho.");
+          finalizarSessao(true);
+      }, 500);
+  }
 
+  async function finalizarSessao(concluidoAutomaticamente) {
+      if (!inicio) return;
       clearInterval(intervalo);
       let fim = new Date();
-
       let payload = {
           categoria: document.getElementById('categoria').value,
           horarioInicio: inicio.toISOString().slice(0, 19),
@@ -113,16 +295,19 @@
       try {
           let response = await fetch('http://localhost:8080/api/v1/sessoes', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: getHeaders(),
               body: JSON.stringify(payload)
           });
 
           if (response.ok) {
-              alert("Sessão salva com sucesso!");
+              if(!concluidoAutomaticamente) alert("Sessão salva com sucesso!");
               resetarInterface();
               carregarDados();
+          } else if(response.status === 403) {
+              alert("Sessão expirada. Faça login novamente.");
+              fazerLogout();
           } else {
-              alert("Erro ao salvar sessão. Verifique o console.");
+              alert("Erro ao salvar sessão.");
           }
       } catch (error) {
           console.error("Erro:", error);
@@ -131,35 +316,42 @@
 
   function resetarInterface() {
       inicio = null;
-      document.getElementById('display').innerText = "00:00:00";
       document.getElementById('status').innerText = "Aguardando início...";
       document.getElementById('startBtn').disabled = false;
       document.getElementById('startBtn').style.opacity = "1";
       document.getElementById('stopBtn').disabled = true;
       document.getElementById('stopBtn').style.opacity = "0.5";
+      document.querySelectorAll('input[name="modo"]').forEach(el => el.disabled = false);
+      document.getElementById('tempoDesejado').disabled = false;
+      document.getElementById('categoria').disabled = false;
+      mudarModo();
   }
 
   async function carregarDados() {
+      if(!jwtToken) return;
+
       try {
-          // Carrega o tempo total
-          let responseTotal = await fetch('http://localhost:8080/api/v1/sessoes/tempo-total');
+          let responseTotal = await fetch('http://localhost:8080/api/v1/sessoes/tempo-total', { headers: getHeaders() });
+          if(responseTotal.status === 403) {
+              fazerLogout();
+              return;
+          }
           let totalSegundos = await responseTotal.json();
           document.getElementById('tempo-total').innerText = formatarHorasMinutos(totalSegundos);
 
-          // Carrega o tempo separado por categoria
-          let responseCat = await fetch('http://localhost:8080/api/v1/sessoes/tempo-por-categoria');
+          let responseCat = await fetch('http://localhost:8080/api/v1/sessoes/tempo-por-categoria', { headers: getHeaders() });
           let dadosPorCategoria = await responseCat.json();
-
           document.getElementById('cat-estudo').innerText = formatarHorasMinutos(dadosPorCategoria["Estudo"] || 0);
           document.getElementById('cat-trabalho').innerText = formatarHorasMinutos(dadosPorCategoria["Trabalho"] || 0);
           document.getElementById('cat-lazer').innerText = formatarHorasMinutos(dadosPorCategoria["Lazer"] || 0);
 
       } catch (e) {
-          document.getElementById('tempo-total').innerText = "Erro";
+          document.getElementById('tempo-total').innerText = "Erro ao carregar dados";
       }
   }
 
-  carregarDados();
+  // Inicializa a aplicação verificando se há token
+  verificarAuth();
 </script>
 
 </body>

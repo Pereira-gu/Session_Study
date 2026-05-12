@@ -34,6 +34,10 @@ public class SessaoEstudo {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatusSessao status;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
 
     public enum StatusSessao{ INICIADA, FINALIZADA}
 }
