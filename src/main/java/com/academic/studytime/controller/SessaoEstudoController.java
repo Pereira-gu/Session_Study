@@ -7,6 +7,10 @@ import com.academic.studytime.model.SessaoEstudo;
 import com.academic.studytime.service.SessaoEstudoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +33,13 @@ public class SessaoEstudoController {
         SEResponse response = mapper.toResponse(novaSessao);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+    
+    @GetMapping
+    public ResponseEntity<Page<SEResponse>> listarSessoes(
+            @PageableDefault(page = 0, size = 10, sort = "horarioInicio", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<SEResponse> sessoes = service.listarSessoes(pageable);
+        return ResponseEntity.ok(sessoes);
     }
 
     @GetMapping("/tempo-total")

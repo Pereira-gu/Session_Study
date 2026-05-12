@@ -1,5 +1,6 @@
 package com.academic.studytime.service;
 
+import com.academic.studytime.dto.SEResponse;
 import com.academic.studytime.dto.SessaoEstudoMapper;
 import com.academic.studytime.dto.SessaoEstudoRequest;
 import com.academic.studytime.model.SessaoEstudo;
@@ -7,6 +8,8 @@ import com.academic.studytime.repository.SessaoEstudoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -60,5 +63,10 @@ public class SessaoEstudoService {
         }
 
         return tempoPorCategoria;
+    }
+
+    public Page<SEResponse> listarSessoes(Pageable pageable) {
+        Page<SessaoEstudo> pagina = repository.findAll(pageable);
+        return pagina.map(mapper::toResponse);
     }
 }
