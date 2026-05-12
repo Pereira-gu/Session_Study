@@ -38,6 +38,10 @@ public class SessaoEstudoService {
 
         sessao.setTempoSegundos(segundosCalculados);
         sessao.setDataCriacao(request.getHorarioInicio().toLocalDate());
+        
+        // Atribuindo o status como FINALIZADA por padrão,
+        // já que estamos recebendo um horário de fim na requisição
+        sessao.setStatus(SessaoEstudo.StatusSessao.FINALIZADA);
 
         return repository.save(sessao);
     }
