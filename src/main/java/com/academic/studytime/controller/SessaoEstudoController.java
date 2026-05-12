@@ -1,6 +1,7 @@
 package com.academic.studytime.controller;
 
 import com.academic.studytime.dto.SEResponse;
+import com.academic.studytime.dto.SessaoEstudoMapper;
 import com.academic.studytime.dto.SessaoEstudoRequest;
 import com.academic.studytime.model.SessaoEstudo;
 import com.academic.studytime.service.SessaoEstudoService;
@@ -19,19 +20,13 @@ import java.util.Map;
 public class SessaoEstudoController {
 
     private final SessaoEstudoService service;
+    private final SessaoEstudoMapper mapper;
 
     @PostMapping
     public ResponseEntity<SEResponse> criarSessao(@Valid @RequestBody SessaoEstudoRequest request) {
         SessaoEstudo novaSessao = service.salvarSessao(request);
-
-        SEResponse response = new SEResponse(
-                novaSessao.getId(),
-                novaSessao.getCategoria(),
-                novaSessao.getTempoSegundos(),
-                novaSessao.getDataCriacao(),
-                novaSessao.getHorarioInicio(),
-                novaSessao.getHorarioFim()
-        );
+        
+        SEResponse response = mapper.toResponse(novaSessao);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

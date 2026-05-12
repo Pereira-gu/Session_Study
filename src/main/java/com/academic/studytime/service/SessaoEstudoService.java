@@ -1,5 +1,6 @@
 package com.academic.studytime.service;
 
+import com.academic.studytime.dto.SessaoEstudoMapper;
 import com.academic.studytime.dto.SessaoEstudoRequest;
 import com.academic.studytime.model.SessaoEstudo;
 import com.academic.studytime.repository.SessaoEstudoRepository;
@@ -18,14 +19,11 @@ import java.util.Map;
 public class SessaoEstudoService {
 
     private final SessaoEstudoRepository repository;
+    private final SessaoEstudoMapper mapper;
 
     @CacheEvict(value = "tempoTotalCache", allEntries = true)
     public SessaoEstudo salvarSessao(SessaoEstudoRequest request) {
-        SessaoEstudo sessao = new SessaoEstudo();
-        sessao.setCategoria(request.getCategoria());
-
-        sessao.setHorarioInicio(request.getHorarioInicio());
-        sessao.setHorarioFim(request.getHorarioFim());
+        SessaoEstudo sessao = mapper.toEntity(request);
 
         long segundosCalculados = Duration.between(
                 request.getHorarioInicio(),
